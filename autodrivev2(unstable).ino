@@ -140,10 +140,57 @@ void loop() {
     bot_cannot_continue = true;
     applyMotorControl(0, 0);
     digitalWrite(LED_BUILTIN, HIGH);
+    void nested_loop() {
+    //NEW CODE BEGINS HERE FOR ROTATING SERVO IN 45 INCREMENTS AND GETTING MINIMUM DISTANCE ANGLE
+    const int numAngles = 5;    // Number of angle increments (0, 45, 90, 135, 180)
+    int angles[numAngles] = {0, 45, 90, 135, 180}; // Angle increments
+    int distances[numAngles];   // Array to store distance values
+    int minIndex = 0;        // Index of the angle with the minimum distance
+    int minDistance = MAX_DISTANCE; // Initialize minimum distance to a high value
+
+  // Rotate the servo and measure distances
+  for (int i = 0; i < numAngles; i++) {
+    uServo.write(angles[i]); // Set servo to the current angle
+    delay(1000);              // Wait for the servo to reach the position
+
+    // Send a ping and get the distance
+    delay(50);                // Wait for the sensor to settle
+    distances[i] = ping(); // Get distance in cm
+
+    // Print angle and distance
+    Serial.print("Angle: ");
+    Serial.print(angles[i]);
+    Serial.print("° Distance: ");
+    Serial.print(distances[i]);
+    Serial.println(" cm");
+
+    // Check if this is the minimum distance so far
+    if (distances[i] < minDistance) {
+      minDistance = distances[i];
+      minIndex = i;
+    }
+  }
+
+  // Print the angle with the minimum distance
+  Serial.print("Angle with minimum distance: ");
+  Serial.print(angles[minIndex]);
+  Serial.print("° Distance: ");
+  Serial.println(minDistance);
+  // Wait before the next measurement cycle
+  delay(5000);}
+
+  turnCar(angles[minIndex]);
+  // full speed
+    digitalWrite(LED_BUILTIN, LOW);
+    applyMotorControl(1, 255);
+    delay((cm-10)/calibratedSpeed*1000);
+
+
+
   }
   
 
-  if (bot_cannot_continue = true) {
+  /*if (bot_cannot_continue = true) { 
     int measurements[5];
     int d;
     
@@ -189,6 +236,4 @@ int findMaxIndex(int arr[], int size) {
         }
     }
     return maxIndex;
-}
-
-
+}*/
