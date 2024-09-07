@@ -48,25 +48,25 @@ void applyMotorControl(int cmd, int spd) {
   Serial.print(", speed: ");
   Serial.println(spd); // Display motor speed
   switch (cmd) {
-    case 2:  // Forward
+    case 2:  // backward
       digitalWrite(IN1, HIGH); 
       digitalWrite(IN2, LOW); 
       digitalWrite(IN3, HIGH); 
       digitalWrite(IN4, LOW); 
-      break;
-    case 1:  // Backward
+      break;  //could the jerking stop if we reomve the breka command??????
+    case 1:  // Forward
       digitalWrite(IN1, LOW); 
       digitalWrite(IN2, HIGH); 
       digitalWrite(IN3, LOW); 
       digitalWrite(IN4, HIGH); 
       break;
-    case 3:  // Right
+    case 4:  // left
       digitalWrite(IN1, HIGH); 
       digitalWrite(IN2, LOW); 
       digitalWrite(IN3, LOW); 
       digitalWrite(IN4, HIGH); 
       break;
-    case 4:  // Left
+    case 3:  // right
       digitalWrite(IN1, LOW); 
       digitalWrite(IN2, HIGH); 
       digitalWrite(IN3, HIGH); 
@@ -127,68 +127,35 @@ void loop() {
     // half speed
     digitalWrite(LED_BUILTIN, LOW);
     applyMotorControl(1, 128);
-    delay((cm-9)/calibratedSpeed*1000);
   }
   else if (cm > 30) {
     bot_cannot_continue = false;
     // full speed
     digitalWrite(LED_BUILTIN, LOW);
     applyMotorControl(1, 255);
-    delay((cm-10)/calibratedSpeed*1000);
   }
   else { // stop and decide
     bot_cannot_continue = true;
     applyMotorControl(0, 0);
     digitalWrite(LED_BUILTIN, HIGH);
-  }
-  
-
-  if (bot_cannot_continue = true) {
-    int measurements[5];
-    int d;
-    
-    for (int Angle = 0; Angle <= 180; Angle += 45) {
+    delayMicroseconds(10);
+    for (int Angle = 0; Angle <= 180; Angle += 10) {
       uServo.write(Angle);
-      measurements[Angle/45] = ping();
-    }
-
-    int size = sizeof(measurements) / sizeof(measurements[0]);
-    int reqIndex = findMaxIndex(measurements, size);
-    d = measurements[reqIndex];
-    
-    if (d > stoppingDistance && d < 30) {
-        bool bot_cannot_continue = false;
-        digitalWrite(LED_BUILTIN, LOW);
-        turnCar(reqIndex*45);     
-      }   
-      else if (d > 30) {
-        bool bot_cannot_continue = false;
-        applyMotorControl(1,255);
-        digitalWrite(LED_BUILTIN, LOW);
-        delay((cm-10)/calibratedSpeed*1000);
-
-      }
-      else {
-        bool bot_cannot_continue = true;
-        applyMotorControl(0,0);
-        digitalWrite(LED_BUILTIN, HIGH);
-      }
-    
-  }
-}
-
-// function to find the index of the max distance
-int findMaxIndex(int arr[], int size) {
-    if (size <= 0) {
-        return -1;
-    }
-    int maxIndex = 0; 
-    for (int i = 1; i < size; i++) {
-        if (arr[i] > arr[maxIndex]) {
-            maxIndex = i;
+      ping();
+      if (cm > stoppingDistance && cm < 30) {
+          bool bot_cannot_continue = false;
+          digitalWrite(LED_BUILTIN, LOW);
+          turnCar(Angle);
+          applyMotorControl(1,128);
+        }   
+        else if (cm > 30) {
+          bool bot_cannot_continue = false;
+          turnCar(Angle);
+          applyMotorControl(1,255);
+          digitalWrite(LED_BUILTIN, LOW);
         }
-    }
-    return maxIndex;
-}
+  }////check validity
+  }
+ 
 
 
