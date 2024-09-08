@@ -1,4 +1,8 @@
 #include <Servo.h>
+#include <pthread.h>
+#include <unistd.h>  // For sleep function
+
+#define N 1000000
 
 // Constants
 const int TRIG_PIN = 27; // Trigger pin for ultrasonic sensor
@@ -57,15 +61,36 @@ void setup() {
 
   // Ensure motors are initially disabled
   stop();
+  pthread_t high_priority_thread, low_priority_thread;
+
+    // Create high-priority thread
+    pthread_create(&high_priority_thread, NULL, high_priority_loop, NULL);
+
+    // Optionally sleep or do some work here
+    // sleep(1);
+
+    // Create low-priority thread
+    pthread_create(&low_priority_thread, NULL, low_priority_loop, NULL);
+
 }
 
 void loop() {
+
+   
+    // Wait for threads to finish
+    pthread_join(high_priority_thread, NULL);
+    pthread_join(low_priority_thread, NULL);
+
+    printf("Both loops finished\n");
+    
+
+
   // Continuous scanning while moving forward
-  continuousScan();
-  moveForward();
+  /* continuousScan();
+  moveForward(); */
 }
 
-void continuousScan() {
+void* high_priority_loop(void* arg)  {
   // Turn on the onboard LED to indicate scanning
   digitalWrite(LED_BUILTIN, HIGH);
 
@@ -88,6 +113,8 @@ void continuousScan() {
 
     delay(100); // Short delay to avoid excessive processing
   }
+  return NULL;
+
 }
 
 int ping() {
@@ -104,7 +131,7 @@ long microsecondsToCentimeters(long microseconds) {
   return microseconds / 29 / 2;
 }
 
-void moveForward() {
+void* low_priority_loop(void* arg)  {
   // Forward movement for left and right motors
   digitalWrite(MOTOR_LEFT_IN1, HIGH);
   digitalWrite(MOTOR_LEFT_IN2, LOW);
@@ -118,6 +145,8 @@ void moveForward() {
 
   // Stop after moving forward
   stop(); */
+  return NULL;
+
 }
 
 void stop() {
